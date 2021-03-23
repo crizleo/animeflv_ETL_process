@@ -13,6 +13,7 @@ generos = ['accion', 'artes_marciales', 'aventura', 'carreras', 'ciencia_ficcion
 
 def main():
     _extract()
+    _transform()
 
 def _extract():
     logger.info("Starting extract process")
@@ -20,6 +21,9 @@ def _extract():
         subprocess.run(["python", "main.py", genero], cwd="./extract")
         subprocess.run(['find', '.', '-name', f'animeflv_{genero}*',
                         '-exec', 'mv', '{}', f'../transform/{genero}.csv', ';'], cwd= './extract')
+
+def _transform():
+    logger.info('Starting transform process')
 
 if __name__ == "__main__":
     main()

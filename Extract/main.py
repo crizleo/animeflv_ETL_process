@@ -10,6 +10,10 @@ import Anime_Page as ap
 import datetime
 import csv
 
+import logging
+logging.basicConfig(level= logging.INFO)
+logger = logging.getLogger()
+
 def _get_filtered_link(base_link, genero_seleccionado):
     #generamos el link desde donde podemos filtrar para ahorrarnos pasos
     filter_end_point = '/browse?order=title'
@@ -25,8 +29,8 @@ def _get_filtered_link(base_link, genero_seleccionado):
     driver.get(filter_link)
     delay = 70
     try:
-        print('Esperando para aceptar cookies\n')
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'CybotCookiebotDialogBodyButtonAccept'))).click()
+        logger.info('Esperando para aceptar cookies\n')
+        WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.ID, 'CybotCookiebotDialogBodyButtonAccept'))).click()
     except:
         pass
     try:
@@ -52,18 +56,20 @@ def _get_filtered_link(base_link, genero_seleccionado):
 def _anime_scraper(filtered_link, base_link, genero):
     filtered_anime_page = ap.AnimeList(filtered_link)
     animes = []
+
     while filtered_anime_page.next_page != '#':
         for anime_link in filtered_anime_page.anime_links:
             try:
                 anime = ap.AnimePage(base_link+anime_link)
                 if anime:
-                    print(f'opteniendo informacion de {anime.nombre}')
-                    print(base_link + anime_link)
+                    logger.info(f'Obteniendo informacion de {anime.nombre}')
+                    logger.info(base_link + anime_link)
                     animes.append(anime)
                 else:
-                    print(f'Error extrayendo {base_link+anime_link}')
+                    logger.info(f'Error extrayendo {base_link+anime_link}')
             except (HTTPError, MaxRetryError):
-                raise SystemExit(f'Error: no se pudo obtener {base_link+anime_link}')
+                logger.info(f'Error: no se pudo obtener {base_link+anime_link}')
+        print()
         filtered_anime_page = ap.AnimeList(base_link+filtered_anime_page.next_page)
     _save_animes(animes, genero)
 
@@ -96,7 +102,7 @@ if __name__ == '__main__':
                            'yuri']
 
     parser.add_argument('genero',
-                        help = 'las opciones son',
+                        help = 'Gender that you want to scrape',
                         type = str,
                         choices= generos_disponibles)
 

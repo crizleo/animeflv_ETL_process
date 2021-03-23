@@ -1,6 +1,7 @@
 import requests
 import bs4
 
+
 class FilteredAnimePage():
 
     def __init__(self, link):
@@ -17,6 +18,7 @@ class FilteredAnimePage():
 
     def _select(self, query_string):
         return self._html.select(query_string)
+
 
 class AnimeList(FilteredAnimePage):
 
@@ -36,6 +38,7 @@ class AnimeList(FilteredAnimePage):
     def next_page(self):
         return self._next_page
 
+
 class AnimePage(FilteredAnimePage):
 
     def __init__(self, link):
@@ -52,26 +55,28 @@ class AnimePage(FilteredAnimePage):
     @property
     def sinopsis(self):
         paragraphs = self._select('main[class="Main"] div[class="Description"] p')
-        result = ''
-        for i,paragraph in enumerate(paragraphs):
-            if i == 0:
-                result = paragraph.text
-            else:
-                result = result+'\n'+paragraph.text
-        return result if len(result) else ''
+        result = '\n'.join([paragraph.text for paragraph in paragraphs])
+        return result if len(paragraphs) else ''
 
     @property
     def estado(self):
-        result = self._select('aside[class="SidebarA BFixed"] p[class="AnmStts A"] span')
+        result = self._select('aside[class="SidebarA BFixed"] > p[class*="AnmStts"] > span')
         return result[0].text if len(result) else ''
 
     @property
     def generos(self):
         generos = self._select('main[class="Main"] nav[class="Nvgnrs"] a')
-        result = ''
-        for i,genero in enumerate(generos):
-            if i == 0:
-                result = genero.text
-            else:
-                result = result+' - '+genero.text
+        result = ' - '.join([genero.text for genero in generos])
         return result if len(result) else ''
+
+    @property
+    def puntuacion(self):
+        return self._select('div[class="Votes"] span[class="vtprmd"]')[0].text
+
+    @property
+    def tipo_produccion(self):
+        return self._select('div[class="Ficha fchlt"] div[class="Container"] span[class*="Type"]')[0].text
+
+    @property
+    def cantidad_votos(self):
+        return self._select('div[class="Votes"] span[id="votes_nmbr"]')[0].text
