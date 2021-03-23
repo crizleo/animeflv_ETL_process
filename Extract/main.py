@@ -20,10 +20,15 @@ def _get_filtered_link(base_link, genero_seleccionado):
     option.add_argument("start-maximized")
     option.add_argument('--disable-dev-shm-usage')
     #abrir el buscador
-    driver = webdriver.Chrome(executable_path='C:\chromedriver', options=option)
+    driver = webdriver.Chrome(executable_path=r'C:\chromedriver.exe', options=option)
     #cargar la pagina
     driver.get(filter_link)
     delay = 70
+    try:
+        print('Esperando para aceptar cookies\n')
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'CybotCookiebotDialogBodyButtonAccept'))).click()
+    except:
+        pass
     try:
         WebDriverWait(driver, delay).until(EC.element_to_be_clickable((By.XPATH, '//button[@class = "multiselect dropdown-toggle btn btn-sm btn-default"]')))
         driver.find_element_by_xpath('//button[@class = "multiselect dropdown-toggle btn btn-sm btn-default"]').click()
@@ -31,7 +36,7 @@ def _get_filtered_link(base_link, genero_seleccionado):
         lista_generos = driver.find_elements_by_xpath('//ul[@class = "multiselect-container genres-select dropdown-menu"]/li')
         generos = [genero.find_element_by_xpath('.//input').get_attribute('value').replace('-', '_') for genero in lista_generos]
     except TimeoutException:
-        print('Error: La pagina tardo demasiado en cargar')
+        raise SystemExit('Error: La pagina tardo demasiado en cargar');
     #seleccionar el genero
     for i, genero in enumerate(generos):
         if genero == genero_seleccionado:
@@ -44,7 +49,7 @@ def _get_filtered_link(base_link, genero_seleccionado):
     #devolvemos el link con los filtros aplicados
     return filtered_link
 
-def _anime_scraper(filtered_link, base_link):
+def _anime_scraper(filtered_link, base_link, genero):
     filtered_anime_page = ap.AnimeList(filtered_link)
     animes = []
     while filtered_anime_page.next_page != '#':
@@ -58,13 +63,13 @@ def _anime_scraper(filtered_link, base_link):
                 else:
                     print(f'Error extrayendo {base_link+anime_link}')
             except (HTTPError, MaxRetryError):
-                print(f'Error: no se pudo obtener {base_link+anime_link}')
+                raise SystemExit(f'Error: no se pudo obtener {base_link+anime_link}')
         filtered_anime_page = ap.AnimeList(base_link+filtered_anime_page.next_page)
-    _save_animes(animes)
+    _save_animes(animes, genero)
 
-def _save_animes(animes):
+def _save_animes(animes, genero):
     now = datetime.datetime.now().strftime('%Y_%m_%d')
-    out_file_name = f'animeflv_{now}_articles.csv'
+    out_file_name = f'animeflv_{genero}_{now}_articles.csv'
 
     csv_headers = list(filter(lambda property: not property.startswith('_'), dir(animes[0])))
 
@@ -93,7 +98,7 @@ if __name__ == '__main__':
 
     filtered_link = _get_filtered_link(base_link, args.genero)
 
-    _anime_scraper(filtered_link, base_link)
+    _anime_scraper(filtered_link, base_link, args.genero)
 
 
 
