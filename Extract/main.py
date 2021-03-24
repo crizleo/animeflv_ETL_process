@@ -57,19 +57,21 @@ def _anime_scraper(filtered_link, base_link, genero):
     filtered_anime_page = ap.AnimeList(filtered_link)
     animes = []
 
-    while filtered_anime_page.next_page != '#':
+    while True:
         for anime_link in filtered_anime_page.anime_links:
             try:
                 anime = ap.AnimePage(base_link+anime_link)
                 if anime:
                     logger.info(f'Obteniendo informacion de {anime.nombre}')
-                    logger.info(base_link + anime_link)
+                    logger.info(base_link + anime_link+'\n')
                     animes.append(anime)
                 else:
                     logger.info(f'Error extrayendo {base_link+anime_link}')
             except (HTTPError, MaxRetryError):
                 logger.info(f'Error: no se pudo obtener {base_link+anime_link}')
-        print()
+        #usamos el if para emular un do..while
+        if filtered_anime_page.next_page == '#':
+            break
         filtered_anime_page = ap.AnimeList(base_link+filtered_anime_page.next_page)
     _save_animes(animes, genero)
 

@@ -16,14 +16,18 @@ def main():
     _transform()
 
 def _extract():
-    logger.info("Starting extract process")
+    logger.info("Starting extract process\n")
     for genero in generos:
-        subprocess.run(["python", "main.py", genero], cwd="./extract")
+        logger.info(f'Extracting {genero}')
+        subprocess.run(['python', 'main.py', genero], cwd="./extract")
         subprocess.run(['find', '.', '-name', f'animeflv_{genero}*',
                         '-exec', 'mv', '{}', f'../transform/{genero}.csv', ';'], cwd= './extract')
 
 def _transform():
     logger.info('Starting transform process')
+    for genero in generos:
+        subprocess.run(['python', 'recipe.py', f'{genero}.csv'])
+
 
 if __name__ == "__main__":
     main()

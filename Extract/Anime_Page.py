@@ -24,7 +24,10 @@ class AnimeList(FilteredAnimePage):
 
     def __init__(self, link):
         super().__init__(link)
-        self._next_page = self._select('ul[class="pagination"] li a[rel="next"]')[0]['href']
+        try:
+            self._next_page = self._select('ul[class="pagination"] li a[rel="next"]')[0]['href']
+        except Exception as e:
+            self._next_page = '#'
 
     @property
     def anime_links(self):
